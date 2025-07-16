@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kullanıcı Profili</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container" id="user-profile">
+    <h2>Kullanıcı Yükleniyor...</h2>
+  </div>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module">
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { db, auth } from "./firebase.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get("uid");
+    const profileBox = document.getElementById("user-profile");
+
+    async function loadUser() {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const currentUser = auth.currentUser;
+
+      if (!userDoc.exists()) {
+        profileBox.innerHTML = "<p>Kullanıcı bulunamadı.</p>";
+        return;
+      }
+
+      const user = userDoc.data();
+
+      profileBox.innerHTML = `
+        <h2>${user.username}</h2>
+        <p>${user.email}</p>
+        <button id="followBtn">Takip Et</button>
+        <button onclick="window.location='chat.html?uid=${uid}'">Mesaj Gönder</button>
+      `;
+
+      const followBtn = document.getElementById("followBtn");
+      const followRef = doc(db, "follows", `${currentUser.uid}_${uid}`);
+
+      const checkFollow = await getDoc(followRef);
+      if (checkFollow.exists()) {
+        followBtn.textContent = "Takibi Bırak";
+      }
+
+      followBtn.onclick = async () => {
+        if (followBtn.textContent === "Takip Et") {
+          await setDoc(followRef, {
+            from: currentUser.uid,
+            to: uid
+          });
+          followBtn.textContent = "Takibi Bırak";
+        } else {
+          await deleteDoc(followRef);
+          followBtn.textContent = "Takip Et";
+        }
+      };
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) loadUser();
+      else window.location = "index.html";
+    });
+  </script>
+</body>
+</html>

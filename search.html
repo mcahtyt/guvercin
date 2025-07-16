@@ -1,0 +1,26 @@
+<!-- ... önceki head kısmı ... -->
+<h1>Kullanıcı Ara</h1>
+<input type="text" id="searchInput" placeholder="Kullanıcı adı ile ara">
+<ul id="results"></ul>
+
+<script type="module" src="firebase.js"></script>
+<script type="module">
+  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { db } from './firebase.js';
+
+  const searchInput = document.getElementById("searchInput");
+  const results = document.getElementById("results");
+
+  searchInput.addEventListener("input", async () => {
+    results.innerHTML = "";
+    const snapshot = await getDocs(collection(db, "users"));
+    snapshot.forEach(doc => {
+      const user = doc.data();
+      if (user.username.toLowerCase().includes(searchInput.value.toLowerCase())) {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="user.html?uid=${doc.id}">${user.username}</a>`;
+        results.appendChild(li);
+      }
+    });
+  });
+</script>

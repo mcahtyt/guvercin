@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Onelupp Feed</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Onelupp</h1>
+    <nav>
+      <a href="profile.html">Profil</a>
+      <a href="search.html">Ara</a>
+    </nav>
+  </header>
+
+  <main id="feed"></main>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module">
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { db } from './firebase.js';
+
+    const feed = document.getElementById("feed");
+    const postsRef = collection(db, "posts");
+
+    getDocs(postsRef).then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `<h3>${data.user}</h3><p>${data.content}</p>`;
+        feed.appendChild(div);
+      });
+    });
+  </script>
+</body>
+</html>
